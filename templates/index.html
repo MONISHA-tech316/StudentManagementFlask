@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — Student Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1b2430;
+  --paper:#f3efe6;
+  --panel:#fffdf8;
+  --navy:#23344f;
+  --navy-deep:#16223a;
+  --amber:#c4762a;
+  --amber-soft:#e9c79a;
+  --line:#dcd4c0;
+  --green:#3f6f4f;
+  --red:#a3402f;
+  --muted:#6c7382;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+}
+::selection{background:var(--amber-soft);}
+.serif{font-family:'Fraunces',serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+
+/* ===== LOGIN ===== */
+#login-screen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(196,118,42,.10), transparent 45%),
+    radial-gradient(circle at 80% 80%, rgba(35,52,79,.10), transparent 45%),
+    var(--paper);
+}
+.login-card{
+  width:380px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:44px 40px 36px;
+  box-shadow:0 30px 60px -30px rgba(22,34,58,.35);
+  position:relative;
+}
+.login-card::before{
+  content:"";
+  position:absolute; top:0; left:0; right:0; height:4px;
+  background:linear-gradient(90deg,var(--navy),var(--amber));
+  border-radius:4px 4px 0 0;
+}
+.login-eyebrow{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--amber);
+  margin-bottom:10px;
+}
+.login-card h1{
+  font-family:'Fraunces',serif;
+  font-weight:600;
+  font-size:30px;
+  margin:0 0 6px;
+  color:var(--navy-deep);
+}
+.login-card p.sub{ color:var(--muted); font-size:13.5px; margin:0 0 28px; }
+.field{ margin-bottom:16px; }
+.field label{ display:block; font-size:12px; font-weight:600; color:var(--navy); margin-bottom:6px; letter-spacing:.02em;}
+.field input, .field select{
+  width:100%;
+  padding:11px 12px;
+  border:1px solid var(--line);
+  border-radius:3px;
+  background:#fff;
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  color:var(--ink);
+}
+.field input:focus, .field select:focus{ outline:2px solid var(--amber); outline-offset:1px; border-color:var(--amber);}
+.btn{
+  appearance:none; border:none; cursor:pointer;
+  font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px;
+  padding:12px 18px; border-radius:3px;
+  transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+}
+.btn:active{ transform:translateY(1px); }
+.btn-primary{ background:var(--navy-deep); color:#fdf8ef; width:100%; }
+.btn-primary:hover{ background:var(--navy); }
+.btn-amber{ background:var(--amber); color:#fff; }
+.btn-amber:hover{ background:#ab6620; }
+.btn-ghost{ background:transparent; border:1px solid var(--line); color:var(--navy); }
+.btn-ghost:hover{ border-color:var(--navy); }
+.btn-danger{ background:#fff; border:1px solid var(--red); color:var(--red); }
+.btn-danger:hover{ background:var(--red); color:#fff; }
+.login-hint{
+  margin-top:18px; font-size:11.5px; color:var(--muted);
+  border-top:1px dashed var(--line); padding-top:14px;
+}
+.login-error{ color:var(--red); font-size:12.5px; margin:-6px 0 14px; display:none;}
+
+/* ===== APP SHELL ===== */
+#app{ display:none; min-height:100vh; }
+.shell{ display:grid; grid-template-columns:230px 1fr; min-height:100vh; }
+.sidebar{
+  background:var(--navy-deep);
+  color:#e9e4d6;
+  padding:26px 18px;
+  display:flex; flex-direction:column;
+}
+.brand{ display:flex; align-items:baseline; gap:8px; margin-bottom:6px;}
+.brand .mark{ font-family:'Fraunces',serif; font-weight:600; font-size:21px; color:#fdf8ef;}
+.brand .tag{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--amber-soft); }
+.session-line{ font-size:11px; color:#9aa3b5; margin-bottom:28px; }
+.nav-group{ margin-bottom:6px; }
+.nav-btn{
+  width:100%; text-align:left; background:transparent; border:none; cursor:pointer;
+  color:#cfd3df; font-family:'Inter',sans-serif; font-size:13.5px; font-weight:500;
+  padding:10px 12px; border-radius:3px; margin-bottom:2px;
+  display:flex; align-items:center; gap:10px;
+}
+.nav-btn .dot{ width:5px; height:5px; border-radius:50%; background:#566079; flex-shrink:0;}
+.nav-btn:hover{ background:rgba(255,255,255,.05); color:#fff; }
+.nav-btn.active{ background:rgba(196,118,42,.18); color:#fff; }
+.nav-btn.active .dot{ background:var(--amber); }
+.sidebar-foot{ margin-top:auto; padding-top:18px; border-top:1px solid rgba(255,255,255,.08); }
+.logout-btn{
+  width:100%; background:transparent; border:1px solid rgba(255,255,255,.18); color:#e9e4d6;
+  padding:9px 12px; border-radius:3px; font-size:12.5px; cursor:pointer; font-family:'Inter';
+}
+.logout-btn:hover{ border-color:var(--amber); color:var(--amber-soft); }
+
+.main{ padding:32px 40px 60px; overflow-x:auto;}
+.page-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:26px; flex-wrap:wrap; gap:14px;}
+.page-head h2{ font-family:'Fraunces',serif; font-size:26px; margin:0 0 4px; color:var(--navy-deep);}
+.page-head .desc{ color:var(--muted); font-size:13px; margin:0;}
+.page{ display:none; }
+.page.active{ display:block; animation:fade .25s ease; }
+@keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+/* stat cards */
+.stat-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:30px;}
+.stat-card{ background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:18px 18px 16px; position:relative; overflow:hidden;}
+.stat-card .num{ font-family:'Fraunces',serif; font-size:32px; color:var(--navy-deep); line-height:1;}
+.stat-card .lbl{ font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:6px;}
+.stat-card::after{ content:""; position:absolute; right:-10px; bottom:-10px; width:60px; height:60px; border-radius:50%; background:var(--amber-soft); opacity:.25;}
+
+/* table */
+.panel{ background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:0; overflow:hidden;}
+.panel-head{ padding:16px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;}
+.panel-head h3{ margin:0; font-family:'Fraunces',serif; font-size:16px; color:var(--navy-deep); font-weight:600;}
+table{ width:100%; border-collapse:collapse; font-size:13.5px;}
+th{ text-align:left; padding:10px 20px; background:#efe9da; color:var(--navy); font-size:11px; text-transform:uppercase; letter-spacing:.05em; font-weight:600; border-bottom:1px solid var(--line);}
+td{ padding:12px 20px; border-bottom:1px solid var(--line); vertical-align:middle;}
+tr:last-child td{ border-bottom:none; }
+tr:hover td{ background:rgba(196,118,42,.05); }
+.pill{ display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+.pill-cs{ background:#dce7f6; color:#234674;}
+.pill-ba{ background:#f3e3c5; color:#7a541a;}
+.pill-en{ background:#dcefe1; color:#2c6b3f;}
+.pill-ma{ background:#f0dce8; color:#7a2c54;}
+.pill-default{ background:#e7e2d4; color:var(--navy);}
+.gpa-tag{ font-family:'IBM Plex Mono',monospace; font-weight:500; padding:2px 8px; border-radius:3px; font-size:12.5px;}
+.gpa-good{ background:#dcefe1; color:var(--green);}
+.gpa-mid{ background:#f8eccb; color:#8a6315;}
+.gpa-low{ background:#f6dcd6; color:var(--red);}
+.row-actions{ display:flex; gap:6px; }
+.icon-btn{ background:none; border:1px solid var(--line); width:30px; height:30px; border-radius:3px; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; color:var(--navy);}
+.icon-btn:hover{ border-color:var(--amber); color:var(--amber);}
+.icon-btn.del:hover{ border-color:var(--red); color:var(--red);}
+
+.toolbar{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; align-items:center;}
+.toolbar input[type=text], .toolbar select{
+  padding:9px 12px; border:1px solid var(--line); border-radius:3px; font-size:13px; background:#fff; font-family:'Inter';
+}
+.toolbar input[type=text]{ min-width:220px; }
+.attendance-bar{ width:80px; height:6px; background:#e7e2d4; border-radius:3px; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:8px;}
+.attendance-bar > span{ display:block; height:100%; background:var(--green);}
+.empty-state{ padding:50px 20px; text-align:center; color:var(--muted); font-size:13.5px;}
+
+/* modal */
+.overlay{ position:fixed; inset:0; background:rgba(22,30,46,.45); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;}
+.overlay.show{ display:flex; }
+.modal{ background:var(--panel); width:440px; max-width:100%; border-radius:5px; padding:28px 28px 24px; box-shadow:0 30px 60px -20px rgba(0,0,0,.4); max-height:90vh; overflow-y:auto;}
+.modal h3{ font-family:'Fraunces',serif; margin:0 0 18px; color:var(--navy-deep); font-size:19px;}
+.modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:22px;}
+.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+
+/* attendance grid */
+.att-grid{ display:flex; flex-direction:column; gap:0; }
+.att-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 20px; border-bottom:1px solid var(--line); }
+.att-row:last-child{ border-bottom:none; }
+.att-name{ font-weight:500; }
+.att-controls{ display:flex; gap:6px; }
+.att-btn{ border:1px solid var(--line); background:#fff; padding:6px 12px; font-size:12px; border-radius:3px; cursor:pointer; font-weight:600;}
+.att-btn.p.active{ background:var(--green); color:#fff; border-color:var(--green);}
+.att-btn.a.active{ background:var(--red); color:#fff; border-color:var(--red);}
+.att-btn.l.active{ background:#c98c1f; color:#fff; border-color:#c98c1f;}
+
+.report-card{ background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:22px; margin-bottom:18px;}
+.report-card h4{ font-family:'Fraunces',serif; margin:0 0 14px; color:var(--navy-deep); font-size:16px;}
+.bar-row{ display:flex; align-items:center; gap:12px; margin-bottom:10px; font-size:13px;}
+.bar-label{ width:130px; flex-shrink:0; color:var(--navy); font-weight:500;}
+.bar-track{ flex:1; height:14px; background:#efe9da; border-radius:3px; overflow:hidden;}
+.bar-fill{ height:100%; background:linear-gradient(90deg,var(--navy),var(--amber)); }
+.bar-val{ width:36px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted);}
+
+.toast{
+  position:fixed; bottom:24px; right:24px; background:var(--navy-deep); color:#fdf8ef;
+  padding:12px 18px; border-radius:4px; font-size:13px; box-shadow:0 10px 30px rgba(0,0,0,.3);
+  display:flex; align-items:center; gap:10px; transform:translateY(20px); opacity:0; pointer-events:none;
+  transition:all .25s ease; z-index:100; border-left:3px solid var(--amber);
+}
+.toast.show{ transform:translateY(0); opacity:1; }
+
+@media (max-width:760px){
+  .shell{ grid-template-columns:1fr; }
+  .sidebar{ flex-direction:row; overflow-x:auto; padding:14px; align-items:center; }
+  .brand{ margin-bottom:0; }
+  .nav-group{ display:flex; gap:4px; margin-bottom:0;}
+  .session-line{ display:none; }
+  .sidebar-foot{ margin-top:0; padding-top:0; border-top:none; margin-left:auto; }
+  .main{ padding:22px 18px 50px; }
+  .two-col{ grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-eyebrow">Ledger · Campus Records</div>
+    <h1>Sign in</h1>
+    <p class="sub">Access the student management console.</p>
+    <div class="login-error" id="login-error">Incorrect username or password.</div>
+    <form id="login-form">
+      <div class="field">
+        <label for="login-user">Username</label>
+        <input type="text" id="login-user" autocomplete="username" placeholder="admin">
+      </div>
+      <div class="field">
+        <label for="login-pass">Password</label>
+        <input type="password" id="login-pass" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-primary">Sign in</button>
+    </form>
+    <button type="button" class="btn btn-ghost" style="width:100%;margin-top:10px;" id="autofill-btn">Use demo login</button>
+    <div class="login-hint">Demo login — Username: <strong>admin</strong> &nbsp;|&nbsp; Password: <strong>admin123</strong><br><span style="font-size:10.5px;">(type exactly as shown — no quotes, no extra spaces)</span></div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="mark">Ledger</span><span class="tag">SMS</span></div>
+      <div class="session-line">Signed in as <strong id="session-user" style="color:#fdf8ef;">admin</strong></div>
+      <nav class="nav-group">
+        <button class="nav-btn active" data-page="dashboard"><span class="dot"></span>Dashboard</button>
+        <button class="nav-btn" data-page="students"><span class="dot"></span>Students</button>
+        <button class="nav-btn" data-page="attendance"><span class="dot"></span>Attendance</button>
+        <button class="nav-btn" data-page="gpa"><span class="dot"></span>GPA Calculator</button>
+        <button class="nav-btn" data-page="reports"><span class="dot"></span>Reports</button>
+      </nav>
+      <div class="sidebar-foot">
+        <button class="logout-btn" id="logout-btn">Log out</button>
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <!-- DASHBOARD -->
+      <section class="page active" id="page-dashboard">
+        <div class="page-head">
+          <div><h2>Dashboard</h2><p class="desc">A live snapshot of your campus roster.</p></div>
+        </div>
+        <div class="stat-row" id="stat-row"></div>
+        <div class="panel">
+          <div class="panel-head"><h3>Recently added students</h3></div>
+          <div id="recent-table-wrap"></div>
+        </div>
+      </section>
+
+      <!-- STUDENTS -->
+      <section class="page" id="page-students">
+        <div class="page-head">
+          <div><h2>Students</h2><p class="desc">Add, edit, and manage every student record.</p></div>
+          <button class="btn btn-amber" id="add-student-btn">+ Add student</button>
+        </div>
+        <div class="toolbar">
+          <input type="text" id="search-input" placeholder="Search by name or ID…">
+          <select id="filter-dept">
+            <option value="">All departments</option>
+          </select>
+        </div>
+        <div class="panel"><div id="students-table-wrap"></div></div>
+      </section>
+
+      <!-- ATTENDANCE -->
+      <section class="page" id="page-attendance">
+        <div class="page-head">
+          <div><h2>Attendance</h2><p class="desc">Mark today's attendance, department by department.</p></div>
+          <div class="mono" style="font-size:12px;color:var(--muted);" id="att-date"></div>
+        </div>
+        <div class="toolbar">
+          <select id="att-filter-dept"><option value="">All departments</option></select>
+        </div>
+        <div class="panel"><div class="att-grid" id="att-grid"></div></div>
+      </section>
+
+      <!-- GPA -->
+      <section class="page" id="page-gpa">
+        <div class="page-head">
+          <div><h2>GPA Calculator</h2><p class="desc">Compute a student's GPA from course grades, live.</p></div>
+        </div>
+        <div class="panel" style="padding:22px;">
+          <div class="field">
+            <label for="gpa-student-select">Student</label>
+            <select id="gpa-student-select"></select>
+          </div>
+          <div id="gpa-courses"></div>
+          <button class="btn btn-ghost" id="gpa-add-course" style="margin-top:8px;">+ Add course</button>
+          <div style="margin-top:24px; padding-top:18px; border-top:1px dashed var(--line); display:flex; justify-content:space-between; align-items:center;">
+            <div style="color:var(--muted); font-size:13px;">Computed GPA</div>
+            <div class="serif" style="font-size:34px; color:var(--navy-deep);" id="gpa-result">0.00</div>
+          </div>
+          <button class="btn btn-primary" id="gpa-save" style="margin-top:14px; width:auto; padding-left:24px; padding-right:24px;">Save GPA to student record</button>
+        </div>
+      </section>
+
+      <!-- REPORTS -->
+      <section class="page" id="page-reports">
+        <div class="page-head">
+          <div><h2>Reports</h2><p class="desc">Department distribution, GPA spread, and attendance summary.</p></div>
+        </div>
+        <div id="reports-wrap"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============== STATE (in-memory, resets on reload) ============== */
+const DEPTS = [
+  {code:'CS', name:'Computer Science', cls:'pill-cs'},
+  {code:'BA', name:'Business Admin', cls:'pill-ba'},
+  {code:'EN', name:'Engineering', cls:'pill-en'},
+  {code:'MA', name:'Mathematics', cls:'pill-ma'},
+];
+function deptMeta(code){ return DEPTS.find(d=>d.code===code) || {code, name:code, cls:'pill-default'}; }
+
+let students = [
+  {id:'STU-1001', name:'Ananya Sharma', dept:'CS', email:'ananya.sharma@campus.edu', gpa:3.8, attendance:96, courses:[{name:'Algorithms', grade:'A', credits:4},{name:'Databases', grade:'A-', credits:3}]},
+  {id:'STU-1002', name:'Rohan Mehta', dept:'BA', email:'rohan.mehta@campus.edu', gpa:3.1, attendance:88, courses:[{name:'Marketing', grade:'B', credits:3},{name:'Finance', grade:'B+', credits:3}]},
+  {id:'STU-1003', name:'Priya Nair', dept:'EN', email:'priya.nair@campus.edu', gpa:3.5, attendance:92, courses:[{name:'Thermodynamics', grade:'A-', credits:4},{name:'Statics', grade:'B+', credits:3}]},
+  {id:'STU-1004', name:'Karan Verma', dept:'MA', email:'karan.verma@campus.edu', gpa:2.6, attendance:74, courses:[{name:'Linear Algebra', grade:'C+', credits:3},{name:'Calculus II', grade:'B-', credits:4}]},
+  {id:'STU-1005', name:'Sneha Iyer', dept:'CS', email:'sneha.iyer@campus.edu', gpa:3.9, attendance:99, courses:[{name:'Operating Systems', grade:'A', credits:4},{name:'AI Foundations', grade:'A', credits:3}]},
+  {id:'STU-1006', name:'Aditya Rao', dept:'EN', email:'aditya.rao@campus.edu', gpa:2.9, attendance:81, courses:[{name:'Circuits', grade:'B-', credits:3},{name:'Materials Science', grade:'C+', credits:3}]},
+];
+let nextIdNum = 1007;
+let attendanceToday = {}; // id -> 'P' | 'A' | 'L'
+students.forEach(s => attendanceToday[s.id] = 'P');
+
+const GRADE_POINTS = {'A':4.0,'A-':3.7,'B+':3.3,'B':3.0,'B-':2.7,'C+':2.3,'C':2.0,'C-':1.7,'D':1.0,'F':0.0};
+
+let currentEditId = null;
+let gpaCourseRows = [];
+
+/* ============== LOGIN ============== */
+document.getElementById('autofill-btn').addEventListener('click', ()=>{
+  document.getElementById('login-user').value = 'admin';
+  document.getElementById('login-pass').value = 'admin123';
+});
+document.getElementById('login-form').addEventListener('submit', e=>{
+  e.preventDefault();
+  const u = document.getElementById('login-user').value.trim().toLowerCase();
+  const p = document.getElementById('login-pass').value.trim();
+  const err = document.getElementById('login-error');
+  if(u === 'admin' && p === 'admin123'){
+    err.style.display='none';
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('session-user').textContent = u;
+    initApp();
+  } else {
+    err.style.display='block';
+  }
+});
+document.getElementById('logout-btn').addEventListener('click', ()=>{
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-pass').value='';
+  document.getElementById('login-form').reset();
+});
+
+/* ============== NAV ============== */
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+btn.dataset.page).classList.add('active');
+    if(btn.dataset.page==='reports') renderReports();
+    if(btn.dataset.page==='gpa') renderGpaPage();
+    if(btn.dataset.page==='attendance') renderAttendance();
+  });
+});
+
+/* ============== HELPERS ============== */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._tm);
+  toast._tm = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function gpaClass(g){ return g>=3.5 ? 'gpa-good' : g>=2.5 ? 'gpa-mid' : 'gpa-low'; }
+function fillDeptSelect(sel, includeBlank){
+  sel.innerHTML = (includeBlank? '<option value="">All departments</option>' : '') +
+    DEPTS.map(d=>`<option value="${d.code}">${d.name}</option>`).join('');
+}
+
+/* ============== INIT ============== */
+function initApp(){
+  fillDeptSelect(document.getElementById('filter-dept'), true);
+  fillDeptSelect(document.getElementById('att-filter-dept'), true);
+  document.getElementById('att-date').textContent = new Date().toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  renderDashboard();
+  renderStudents();
+  renderAttendance();
+}
+
+/* ============== DASHBOARD ============== */
+function renderDashboard(){
+  const total = students.length;
+  const avgGpa = (students.reduce((a,s)=>a+s.gpa,0)/(total||1)).toFixed(2);
+  const avgAtt = Math.round(students.reduce((a,s)=>a+s.attendance,0)/(total||1));
+  const deptCount = new Set(students.map(s=>s.dept)).size;
+
+  document.getElementById('stat-row').innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">Total students</div></div>
+    <div class="stat-card"><div class="num">${avgGpa}</div><div class="lbl">Average GPA</div></div>
+    <div class="stat-card"><div class="num">${avgAtt}%</div><div class="lbl">Average attendance</div></div>
+    <div class="stat-card"><div class="num">${deptCount}</div><div class="lbl">Active departments</div></div>
+  `;
+
+  const recent = students.slice(-5).reverse();
+  document.getElementById('recent-table-wrap').innerHTML = renderTable(recent, false);
+}
+
+/* ============== STUDENTS TABLE ============== */
+function renderTable(list, withActions){
+  if(list.length===0) return `<div class="empty-state">No students to show yet. Add your first record to get started.</div>`;
+  const rows = list.map(s=>{
+    const d = deptMeta(s.dept);
+    return `<tr>
+      <td class="mono" style="color:var(--muted); font-size:12px;">${s.id}</td>
+      <td><strong>${s.name}</strong><div style="font-size:11.5px;color:var(--muted);">${s.email}</div></td>
+      <td><span class="pill ${d.cls}">${d.name}</span></td>
+      <td><span class="gpa-tag ${gpaClass(s.gpa)}">${s.gpa.toFixed(2)}</span></td>
+      <td><span class="attendance-bar"><span style="width:${s.attendance}%;"></span></span>${s.attendance}%</td>
+      ${withActions ? `<td><div class="row-actions">
+        <button class="icon-btn" onclick="openEditModal('${s.id}')" title="Edit">✎</button>
+        <button class="icon-btn del" onclick="deleteStudent('${s.id}')" title="Delete">✕</button>
+      </div></td>` : ''}
+    </tr>`;
+  }).join('');
+  return `<table>
+    <thead><tr>
+      <th>ID</th><th>Name</th><th>Department</th><th>GPA</th><th>Attendance</th>${withActions?'<th>Actions</th>':''}
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderStudents(){
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const dept = document.getElementById('filter-dept').value;
+  let list = students.filter(s=>{
+    const matchQ = !q || s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
+    const matchD = !dept || s.dept===dept;
+    return matchQ && matchD;
+  });
+  document.getElementById('students-table-wrap').innerHTML = renderTable(list, true);
+}
+document.getElementById('search-input').addEventListener('input', renderStudents);
+document.getElementById('filter-dept').addEventListener('change', renderStudents);
+
+/* ============== ADD / EDIT MODAL ============== */
+document.getElementById('add-student-btn').addEventListener('click', ()=>openEditModal(null));
+
+function openEditModal(id){
+  currentEditId = id;
+  const s = id ? students.find(x=>x.id===id) : null;
+  const deptOptions = DEPTS.map(d=>`<option value="${d.code}" ${s&&s.dept===d.code?'selected':''}>${d.name}</option>`).join('');
+  document.getElementById('modal-content').innerHTML = `
+    <h3>${s? 'Edit student' : 'Add student'}</h3>
+    <div class="field"><label>Full name</label><input type="text" id="m-name" value="${s? s.name:''}" placeholder="e.g. Diya Kapoor"></div>
+    <div class="two-col">
+      <div class="field"><label>Department</label><select id="m-dept">${deptOptions}</select></div>
+      <div class="field"><label>Starting GPA</label><input type="text" id="m-gpa" value="${s? s.gpa : '0.0'}" placeholder="0.0 – 4.0"></div>
+    </div>
+    <div class="field"><label>Email</label><input type="text" id="m-email" value="${s? s.email:''}" placeholder="name@campus.edu"></div>
+    <div class="field"><label>Attendance %</label><input type="text" id="m-att" value="${s? s.attendance : '100'}" placeholder="0 – 100"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" style="width:auto;padding-left:22px;padding-right:22px;" onclick="saveStudent()">${s? 'Save changes':'Add student'}</button>
+    </div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('show'); }
+document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
+
+function saveStudent(){
+  const name = document.getElementById('m-name').value.trim();
+  const dept = document.getElementById('m-dept').value;
+  const email = document.getElementById('m-email').value.trim();
+  let gpa = parseFloat(document.getElementById('m-gpa').value);
+  let att = parseInt(document.getElementById('m-att').value);
+  if(!name){ toast('Please enter a name.'); return; }
+  if(isNaN(gpa)) gpa = 0;
+  gpa = Math.min(4, Math.max(0, gpa));
+  if(isNaN(att)) att = 100;
+  att = Math.min(100, Math.max(0, att));
+
+  if(currentEditId){
+    const s = students.find(x=>x.id===currentEditId);
+    s.name=name; s.dept=dept; s.email=email||s.email; s.gpa=gpa; s.attendance=att;
+    toast('Student record updated.');
+  } else {
+    const id = 'STU-'+(nextIdNum++);
+    students.push({id, name, dept, email: email||(name.toLowerCase().replace(/\s+/g,'.')+'@campus.edu'), gpa, attendance:att, courses:[]});
+    attendanceToday[id]='P';
+    toast('Student added.');
+  }
+  closeModal();
+  renderStudents(); renderDashboard(); renderAttendance(); renderGpaPage();
+}
+function deleteStudent(id){
+  const s = students.find(x=>x.id===id);
+  if(!confirm(`Remove ${s.name} from the roster? This cannot be undone.`)) return;
+  students = students.filter(x=>x.id!==id);
+  delete attendanceToday[id];
+  toast('Student removed.');
+  renderStudents(); renderDashboard(); renderAttendance(); renderGpaPage();
+}
+
+/* ============== ATTENDANCE ============== */
+function renderAttendance(){
+  const dept = document.getElementById('att-filter-dept').value;
+  const list = students.filter(s => !dept || s.dept===dept);
+  if(list.length===0){
+    document.getElementById('att-grid').innerHTML = `<div class="empty-state">No students in this department.</div>`;
+    return;
+  }
+  document.getElementById('att-grid').innerHTML = list.map(s=>{
+    const cur = attendanceToday[s.id]||'P';
+    return `<div class="att-row">
+      <div><span class="att-name">${s.name}</span> <span style="color:var(--muted);font-size:11.5px;"> · ${deptMeta(s.dept).name}</span></div>
+      <div class="att-controls">
+        <button class="att-btn p ${cur==='P'?'active':''}" onclick="setAtt('${s.id}','P')">Present</button>
+        <button class="att-btn l ${cur==='L'?'active':''}" onclick="setAtt('${s.id}','L')">Late</button>
+        <button class="att-btn a ${cur==='A'?'active':''}" onclick="setAtt('${s.id}','A')">Absent</button>
+      </div>
+    </div>`;
+  }).join('') + `<div style="padding:14px 20px;"><button class="btn btn-amber" onclick="saveAttendance()">Save today's attendance</button></div>`;
+}
+document.getElementById('att-filter-dept').addEventListener('change', renderAttendance);
+function setAtt(id, val){ attendanceToday[id]=val; renderAttendance(); }
+function saveAttendance(){
+  // nudge each student's running attendance % toward today's mark
+  Object.keys(attendanceToday).forEach(id=>{
+    const s = students.find(x=>x.id===id);
+    if(!s) return;
+    const mark = attendanceToday[id];
+    const delta = mark==='P' ? 1 : mark==='L' ? -1 : -3;
+    s.attendance = Math.min(100, Math.max(0, Math.round(s.attendance + delta*0.4)));
+  });
+  toast("Today's attendance saved.");
+  renderDashboard(); renderStudents();
+}
+
+/* ============== GPA CALCULATOR ============== */
+function renderGpaPage(){
+  const sel = document.getElementById('gpa-student-select');
+  sel.innerHTML = students.map(s=>`<option value="${s.id}">${s.name} (${s.id})</option>`).join('');
+  if(students.length){
+    loadGpaCourses(sel.value);
+  } else {
+    gpaCourseRows = [];
+    renderGpaCourses();
+  }
+}
+document.getElementById('gpa-student-select').addEventListener('change', e=>loadGpaCourses(e.target.value));
+function loadGpaCourses(id){
+  const s = students.find(x=>x.id===id);
+  gpaCourseRows = s && s.courses && s.courses.length ? s.courses.map(c=>({...c})) : [{name:'', grade:'A', credits:3}];
+  renderGpaCourses();
+}
+function renderGpaCourses(){
+  const wrap = document.getElementById('gpa-courses');
+  wrap.innerHTML = gpaCourseRows.map((c,i)=>`
+    <div style="display:grid; grid-template-columns:1fr 90px 80px 34px; gap:8px; margin-bottom:8px; align-items:center;">
+      <input type="text" value="${c.name}" placeholder="Course name" oninput="gpaCourseRows[${i}].name=this.value" style="padding:9px 10px;border:1px solid var(--line);border-radius:3px;font-size:13px;">
+      <select onchange="gpaCourseRows[${i}].grade=this.value; computeGpa();" style="padding:9px 8px;border:1px solid var(--line);border-radius:3px;font-size:13px;">
+        ${Object.keys(GRADE_POINTS).map(g=>`<option value="${g}" ${c.grade===g?'selected':''}>${g}</option>`).join('')}
+      </select>
+      <input type="number" min="1" max="6" value="${c.credits}" oninput="gpaCourseRows[${i}].credits=parseFloat(this.value)||0; computeGpa();" style="padding:9px 10px;border:1px solid var(--line);border-radius:3px;font-size:13px;">
+      <button class="icon-btn del" onclick="removeGpaCourse(${i})" title="Remove">✕</button>
+    </div>
+  `).join('');
+  computeGpa();
+}
+function removeGpaCourse(i){ gpaCourseRows.splice(i,1); renderGpaCourses(); }
+document.getElementById('gpa-add-course').addEventListener('click', ()=>{
+  gpaCourseRows.push({name:'', grade:'A', credits:3});
+  renderGpaCourses();
+});
+function computeGpa(){
+  let pts=0, credits=0;
+  gpaCourseRows.forEach(c=>{
+    pts += (GRADE_POINTS[c.grade]||0) * (c.credits||0);
+    credits += (c.credits||0);
+  });
+  const gpa = credits ? (pts/credits) : 0;
+  document.getElementById('gpa-result').textContent = gpa.toFixed(2);
+  return gpa;
+}
+document.getElementById('gpa-save').addEventListener('click', ()=>{
+  const id = document.getElementById('gpa-student-select').value;
+  const s = students.find(x=>x.id===id);
+  if(!s) return;
+  s.gpa = parseFloat(computeGpa().toFixed(2));
+  s.courses = gpaCourseRows.filter(c=>c.name.trim()!=='').map(c=>({...c}));
+  toast(`GPA saved for ${s.name}.`);
+  renderDashboard(); renderStudents();
+});
+
+/* ============== REPORTS ============== */
+function renderReports(){
+  const total = students.length || 1;
+  const byDept = DEPTS.map(d=>({...d, count: students.filter(s=>s.dept===d.code).length}));
+  const maxDept = Math.max(1, ...byDept.map(d=>d.count));
+
+  const bands = [
+    {label:'3.5 – 4.0', test:g=>g>=3.5},
+    {label:'2.5 – 3.49', test:g=>g>=2.5&&g<3.5},
+    {label:'0 – 2.49', test:g=>g<2.5},
+  ];
+  const byGpa = bands.map(b=>({label:b.label, count: students.filter(s=>b.test(s.gpa)).length}));
+  const maxGpa = Math.max(1, ...byGpa.map(b=>b.count));
+
+  const avgAtt = Math.round(students.reduce((a,s)=>a+s.attendance,0)/total);
+  const lowAttendance = students.filter(s=>s.attendance<80).sort((a,b)=>a.attendance-b.attendance);
+
+  document.getElementById('reports-wrap').innerHTML = `
+    <div class="report-card">
+      <h4>Students by department</h4>
+      ${byDept.map(d=>`<div class="bar-row">
+        <div class="bar-label">${d.name}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(d.count/maxDept*100)||0}%"></div></div>
+        <div class="bar-val">${d.count}</div>
+      </div>`).join('')}
+    </div>
+    <div class="report-card">
+      <h4>GPA distribution</h4>
+      ${byGpa.map(b=>`<div class="bar-row">
+        <div class="bar-label">${b.label}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(b.count/maxGpa*100)||0}%"></div></div>
+        <div class="bar-val">${b.count}</div>
+      </div>`).join('')}
+    </div>
+    <div class="report-card">
+      <h4>Attendance summary — campus average ${avgAtt}%</h4>
+      ${lowAttendance.length===0 ? `<div style="color:var(--muted);font-size:13px;">No students currently below 80% attendance.</div>` :
+      `<div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Students below 80% attendance, flagged for follow-up:</div>` +
+      lowAttendance.map(s=>`<div class="bar-row">
+        <div class="bar-label">${s.name}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${s.attendance}%;background:${s.attendance<60? 'var(--red)':'#c98c1f'};"></div></div>
+        <div class="bar-val">${s.attendance}%</div>
+      </div>`).join('')}
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
